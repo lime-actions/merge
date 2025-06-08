@@ -23,10 +23,10 @@ jobs:
         fetch-tags: true
         sparse-checkout: |
           version.txt
-          .github/actions/merge/action.yaml
+          action.yaml
         sparse-checkout-cone-mode: false
     - name: Merge
-      uses: ./.github/actions/merge
+      uses: ./
       with:
         # paths: '(action.yaml)|(README.md)'
         version-from: 'version-file'
