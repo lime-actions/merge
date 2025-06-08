@@ -1,3 +1,3 @@
-# Generic Template
+# Merge
 
-Generic template for creating a repository
+Performing gh merges
