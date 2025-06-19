@@ -161,4 +161,4 @@ runs:
       message: ${{ inputs.base != inputs.default-branch
                     && 'Release candidate' || '' }}
       release-candidate: ${{ steps.pr.outputs.base == inputs.default-branch }}
-      version-from: 'version-file'
+      version-from: ${{ inputs.version-from }}
