@@ -1,4 +1,5 @@
 name: Merge
+description: Does a merge, pr-creation and conditionally a release
 
 inputs:
   number:
