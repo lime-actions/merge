@@ -90,6 +90,7 @@ runs:
         ${{ inputs.base != inputs.default-branch
             && inputs.base != inputs.release-candidate-branch
             && '--delete-branch \' || '' }}
+
       echo "::endgroup::"
   - name: Create PR
     id: pr
