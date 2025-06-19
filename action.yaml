@@ -68,6 +68,24 @@ inputs:
     required: false
     type: string
     default: ${{ github.token }}
+  merge-mode-default-branch:
+    description: Mode used in merging to the default branch
+    required: false
+    type: choice
+    options:
+    - 'merge'
+    - 'squash'
+    - 'rebase'
+    default: 'squash'
+  merge-mode-other:
+    description: Mode used in merging non default branch
+    required: false
+    type: choice
+    options:
+    - 'merge'
+    - 'squash'
+    - 'rebase'
+    default: 'rebase'
 
 runs:
   using: 'composite'
@@ -85,8 +103,9 @@ runs:
         --subject "${{ inputs.subject }}" \
         --body "$BODY" \
         --auto \
-        ${{ inputs.base == inputs.default-branch
-            && '--squash' || '--merge'}} \
+        --${{ inputs.base == inputs.default-branch
+            && inputs.merge-mode-default-branch
+            || inputs.merge-mode-other }} \
         ${{ inputs.base != inputs.default-branch
             && inputs.base != inputs.release-candidate-branch
             && '--delete-branch \' || '' }}
