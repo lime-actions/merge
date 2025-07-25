@@ -162,7 +162,6 @@ runs:
               && '--delete-branch \' || '' }}
       fi
       echo "::endgroup::"
-  - name: fallback
   - name: Create PR
     id: pr
     if: inputs.base != inputs.default-branch
