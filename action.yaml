@@ -137,6 +137,7 @@ runs:
     shell: bash
     run: |
       echo "::group::Merging the PR"
+      set +e
       if ! gh pr merge \
           ${{ inputs.number }} \
           --repo "${{ inputs.repo }}" \
@@ -150,6 +151,8 @@ runs:
               && inputs.base != inputs.release-candidate-branch
               && '--delete-branch \' || '' }} ;
       then
+        echo "::endgroup::"
+        echo "::group::Fallback merge"
         gh pr merge \
           ${{ inputs.number }} \
           --repo "${{ inputs.repo }}" \
@@ -161,6 +164,7 @@ runs:
               && inputs.base != inputs.release-candidate-branch
               && '--delete-branch \' || '' }}
       fi
+      set -e
       echo "::endgroup::"
   - name: Create PR
     id: pr
