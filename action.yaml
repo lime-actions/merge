@@ -151,6 +151,7 @@ runs:
               && inputs.base != inputs.release-candidate-branch
               && '--delete-branch \' || '' }} ;
       then
+        set -e
         echo "::endgroup::"
         echo "::group::Fallback merge"
         gh pr merge \
