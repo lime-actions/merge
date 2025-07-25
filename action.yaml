@@ -217,4 +217,5 @@ runs:
       version-from: ${{ inputs.version-from }}
   - name: Success
     id: success
+    shell: bash
     run: echo 'success=true' >> "$GITHUB_OUTPUT"
