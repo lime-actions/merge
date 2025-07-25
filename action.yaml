@@ -87,11 +87,29 @@ inputs:
     - 'squash'
     - 'rebase'
     default: 'rebase'
+  merge-mode-fallback:
+    description: Mode used if merging failed
+    required: false
+    type: choice
+    options:
+    - ''
+    - 'merge'
+    - 'squash'
+    - 'rebase'
+    default: ''
+outputs:
+  success:
+    description: '"true" if success, "" if not'
+    value: ${{ steps.success.outputs.success }}
+  tag:
+    description: Tag, if created
+    value: ${{ steps.gh-release.outputs.tag }}
 
 runs:
   using: 'composite'
   steps:
-  - name: Merge
+  - name: Merge without fallback
+    if: ${{ !inputs.merge-mode-fallback }}
     env:
       GH_TOKEN: ${{ inputs.token }}
       BODY: ${{ inputs.body }}
@@ -110,8 +128,41 @@ runs:
         ${{ inputs.base != inputs.default-branch
             && inputs.base != inputs.release-candidate-branch
             && '--delete-branch \' || '' }}
-
       echo "::endgroup::"
+  - name: Merge with fallback
+    if: inputs.merge-mode-fallback
+    env:
+      GH_TOKEN: ${{ inputs.token }}
+      BODY: ${{ inputs.body }}
+    shell: bash
+    run: |
+      echo "::group::Merging the PR"
+      if ! gh pr merge \
+          ${{ inputs.number }} \
+          --repo "${{ inputs.repo }}" \
+          --subject "${{ inputs.subject }}" \
+          --body "$BODY" \
+          --auto \
+          --${{ inputs.base == inputs.default-branch
+              && inputs.merge-mode-default-branch
+              || inputs.merge-mode-other }} \
+          ${{ inputs.base != inputs.default-branch
+              && inputs.base != inputs.release-candidate-branch
+              && '--delete-branch \' || '' }} ;
+      then
+        gh pr merge \
+          ${{ inputs.number }} \
+          --repo "${{ inputs.repo }}" \
+          --subject "${{ inputs.subject }}" \
+          --body "$BODY" \
+          --auto \
+          --${{ inputs.merge-mode-fallback }} \
+          ${{ inputs.base != inputs.default-branch
+              && inputs.base != inputs.release-candidate-branch
+              && '--delete-branch \' || '' }}
+      fi
+      echo "::endgroup::"
+  - name: fallback
   - name: Create PR
     id: pr
     if: inputs.base != inputs.default-branch
@@ -152,6 +203,7 @@ runs:
       echo "matches=${MATCHES/0/}" >> "$GITHUB_OUTPUT"
       echo "::endgroup::"
   - name: GH release
+    id: gh-release
     if: ${{ steps.paths.outputs.matches
             && inputs.base == inputs.default-branch
             || steps.paths.outputs.matches
@@ -163,3 +215,6 @@ runs:
                     && 'Release candidate' || '' }}
       release-candidate: ${{ steps.pr.outputs.base == inputs.default-branch }}
       version-from: ${{ inputs.version-from }}
+  - name: Success
+    id: success
+    run: echo 'success=true' >> "$GITHUB_OUTPUT"
