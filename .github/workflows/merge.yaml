@@ -6,9 +6,13 @@ on:
     types:
     - submitted
 
+permissions:
+  contents: read
+
 jobs:
   merge:
     if: github.event.review.state == 'approved'
+        && !github.event.pull_request.draft
     runs-on: ubuntu-latest
     permissions:
       contents: write
