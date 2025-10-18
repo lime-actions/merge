@@ -114,6 +114,7 @@ runs:
       BODY: ${{ inputs.body }}
     shell: bash
     run: |
+      set -x
       echo "::group::Merging the PR"
       ${{ inputs.merge-mode-fallback && 'set +e'|| '' }}
       if ! gh pr merge --repo "${{ inputs.repo }}" ${{ inputs.number }} \
@@ -125,7 +126,7 @@ runs:
               || inputs.merge-mode-other }} \
           ${{ inputs.base != inputs.default-branch
               && inputs.base != inputs.release-candidate-branch
-              && '--delete-branch \' || '' }} ;
+              && '--delete-branch' || '' }} ;
       then
         set -e
         echo "::endgroup::"
@@ -137,7 +138,7 @@ runs:
           --${{ inputs.merge-mode-fallback }} \
           ${{ inputs.base != inputs.default-branch
               && inputs.base != inputs.release-candidate-branch
-              && '--delete-branch \' || '' }}
+              && '--delete-branch' || '' }}
       else
         set -e
       fi
