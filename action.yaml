@@ -108,36 +108,14 @@ outputs:
 runs:
   using: 'composite'
   steps:
-  - name: Merge without fallback
-    if: ${{ !inputs.merge-mode-fallback }}
+  - name: Merge
     env:
       GH_TOKEN: ${{ inputs.token }}
       BODY: ${{ inputs.body }}
     shell: bash
     run: |
       echo "::group::Merging the PR"
-      gh pr merge \
-        ${{ inputs.number }} \
-        --repo "${{ inputs.repo }}" \
-        --subject "${{ inputs.subject }}" \
-        --body "$BODY" \
-        --auto \
-        --${{ inputs.base == inputs.default-branch
-            && inputs.merge-mode-default-branch
-            || inputs.merge-mode-other }} \
-        ${{ inputs.base != inputs.default-branch
-            && inputs.base != inputs.release-candidate-branch
-            && '--delete-branch \' || '' }}
-      echo "::endgroup::"
-  - name: Merge with fallback
-    if: inputs.merge-mode-fallback
-    env:
-      GH_TOKEN: ${{ inputs.token }}
-      BODY: ${{ inputs.body }}
-    shell: bash
-    run: |
-      echo "::group::Merging the PR"
-      set +e
+      ${{ inputs.merge-mode-fallback && 'set +e'|| '' }}
       if ! gh pr merge \
           ${{ inputs.number }} \
           --repo "${{ inputs.repo }}" \
@@ -150,6 +128,7 @@ runs:
           ${{ inputs.base != inputs.default-branch
               && inputs.base != inputs.release-candidate-branch
               && '--delete-branch \' || '' }} ;
+        set -e
       then
         set -e
         echo "::endgroup::"
@@ -165,7 +144,6 @@ runs:
               && inputs.base != inputs.release-candidate-branch
               && '--delete-branch \' || '' }}
       fi
-      set -e
       echo "::endgroup::"
   - name: Create PR
     id: pr
