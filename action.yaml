@@ -108,39 +108,16 @@ outputs:
 runs:
   using: 'composite'
   steps:
-  - name: Merge without fallback
-    if: ${{ !inputs.merge-mode-fallback }}
+  - name: Merge
     env:
       GH_TOKEN: ${{ inputs.token }}
       BODY: ${{ inputs.body }}
     shell: bash
     run: |
+      set -x
       echo "::group::Merging the PR"
-      gh pr merge \
-        ${{ inputs.number }} \
-        --repo "${{ inputs.repo }}" \
-        --subject "${{ inputs.subject }}" \
-        --body "$BODY" \
-        --auto \
-        --${{ inputs.base == inputs.default-branch
-            && inputs.merge-mode-default-branch
-            || inputs.merge-mode-other }} \
-        ${{ inputs.base != inputs.default-branch
-            && inputs.base != inputs.release-candidate-branch
-            && '--delete-branch \' || '' }}
-      echo "::endgroup::"
-  - name: Merge with fallback
-    if: inputs.merge-mode-fallback
-    env:
-      GH_TOKEN: ${{ inputs.token }}
-      BODY: ${{ inputs.body }}
-    shell: bash
-    run: |
-      echo "::group::Merging the PR"
-      set +e
-      if ! gh pr merge \
-          ${{ inputs.number }} \
-          --repo "${{ inputs.repo }}" \
+      ${{ inputs.merge-mode-fallback && 'set +e'|| '' }}
+      if ! gh pr merge --repo "${{ inputs.repo }}" ${{ inputs.number }} \
           --subject "${{ inputs.subject }}" \
           --body "$BODY" \
           --auto \
@@ -149,28 +126,27 @@ runs:
               || inputs.merge-mode-other }} \
           ${{ inputs.base != inputs.default-branch
               && inputs.base != inputs.release-candidate-branch
-              && '--delete-branch \' || '' }} ;
+              && '--delete-branch' || '' }} ;
       then
         set -e
         echo "::endgroup::"
         echo "::group::Fallback merge"
-        gh pr merge \
-          ${{ inputs.number }} \
-          --repo "${{ inputs.repo }}" \
+        gh pr merge --repo "${{ inputs.repo }}" ${{ inputs.number }} \
           --subject "${{ inputs.subject }}" \
           --body "$BODY" \
           --auto \
           --${{ inputs.merge-mode-fallback }} \
           ${{ inputs.base != inputs.default-branch
               && inputs.base != inputs.release-candidate-branch
-              && '--delete-branch \' || '' }}
+              && '--delete-branch' || '' }}
+      else
+        set -e
       fi
-      set -e
       echo "::endgroup::"
   - name: Create PR
     id: pr
     if: inputs.base != inputs.default-branch
-    uses: lime-actions/pr-sync@latest
+    uses: lime-actions/pr-sync@v1
     with:
       head: ${{ inputs.base  }}
       version-from: ${{ inputs.version-from }}
@@ -213,7 +189,7 @@ runs:
             || steps.paths.outputs.matches
             && steps.pr.outputs.base == inputs.default-branch
             && !steps.pr.outputs.draft }}
-    uses: lime-actions/gh-release@latest
+    uses: lime-actions/gh-release@v1
     with:
       message: ${{ inputs.base != inputs.default-branch
                     && 'Release candidate' || '' }}
