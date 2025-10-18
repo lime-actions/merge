@@ -116,9 +116,7 @@ runs:
     run: |
       echo "::group::Merging the PR"
       ${{ inputs.merge-mode-fallback && 'set +e'|| '' }}
-      if ! gh pr merge \
-          ${{ inputs.number }} \
-          --repo "${{ inputs.repo }}" \
+      if ! gh pr merge --repo "${{ inputs.repo }}" ${{ inputs.number }} \
           --subject "${{ inputs.subject }}" \
           --body "$BODY" \
           --auto \
@@ -132,9 +130,7 @@ runs:
         set -e
         echo "::endgroup::"
         echo "::group::Fallback merge"
-        gh pr merge \
-          ${{ inputs.number }} \
-          --repo "${{ inputs.repo }}" \
+        gh pr merge --repo "${{ inputs.repo }}" ${{ inputs.number }} \
           --subject "${{ inputs.subject }}" \
           --body "$BODY" \
           --auto \
