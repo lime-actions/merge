@@ -128,7 +128,6 @@ runs:
           ${{ inputs.base != inputs.default-branch
               && inputs.base != inputs.release-candidate-branch
               && '--delete-branch \' || '' }} ;
-        set -e
       then
         set -e
         echo "::endgroup::"
@@ -143,12 +142,14 @@ runs:
           ${{ inputs.base != inputs.default-branch
               && inputs.base != inputs.release-candidate-branch
               && '--delete-branch \' || '' }}
+      else
+        set -e
       fi
       echo "::endgroup::"
   - name: Create PR
     id: pr
     if: inputs.base != inputs.default-branch
-    uses: lime-actions/pr-sync@latest
+    uses: lime-actions/pr-sync@v1
     with:
       head: ${{ inputs.base  }}
       version-from: ${{ inputs.version-from }}
@@ -191,7 +192,7 @@ runs:
             || steps.paths.outputs.matches
             && steps.pr.outputs.base == inputs.default-branch
             && !steps.pr.outputs.draft }}
-    uses: lime-actions/gh-release@latest
+    uses: lime-actions/gh-release@v1
     with:
       message: ${{ inputs.base != inputs.default-branch
                     && 'Release candidate' || '' }}
